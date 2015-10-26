@@ -7,6 +7,7 @@ use Validator;
 use App\Http\Controllers\Controller;
 use Illuminate\Foundation\Auth\ThrottlesLogins;
 use Illuminate\Foundation\Auth\AuthenticatesAndRegistersUsers;
+use Illuminate\Http\Request;
 
 class AuthController extends Controller
 {
@@ -20,6 +21,8 @@ class AuthController extends Controller
     | a simple trait to add these behaviors. Why don't you explore it?
     |
     */
+
+    protected $username = 'username';
 
     use AuthenticatesAndRegistersUsers, ThrottlesLogins;
 
@@ -61,5 +64,35 @@ class AuthController extends Controller
             'email' => $data['email'],
             'password' => bcrypt($data['password']),
         ]);
+    }
+
+    public function authenticated($request, $user)
+    {
+        // Fungsi ini akan dipanggil setelah user berhasil login.
+        // Kita bisa menambahkan aksi-aksi lainnya, misalnya mencatat waktu last_login user.
+        if (auth()->check() && auth()->user()->hasRole('adminpusat')) {
+            return redirect('admin/beranda');
+        } else {
+            return redirect('beranda');
+        }
+    }
+
+    protected function getCredentials(Request $request)
+    {
+        // aslinya
+        // return $request->only($this->loginUsername(), 'password');
+      
+        // dimodifikasi jadi seperti ini
+        return $request->only($this->loginUsername(), 'password') + ['status' => 'active'];
+    }
+
+    /**
+     * Get the path to the login route.
+     *
+     * @return string
+     */
+    public function loginPath()
+    {
+        return property_exists($this, 'loginPath') ? $this->loginPath : '/';
     }
 }
